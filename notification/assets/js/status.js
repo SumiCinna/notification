@@ -62,11 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const right = document.createElement('div'); right.className = 'task-card-right';
     const statusBadge = document.createElement('div'); statusBadge.className = 'status-badge ' + sanitizeStatusClass(t.status); statusBadge.textContent = t.status;
-    const updateBtn = document.createElement('button'); updateBtn.className = 'btn btn-outline task-update-btn'; updateBtn.textContent = 'Update';
-    updateBtn.addEventListener('click', () => openUpdateModal(t));
 
     right.appendChild(statusBadge);
-    right.appendChild(updateBtn);
 
     card.appendChild(left);
     card.appendChild(right);

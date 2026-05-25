@@ -85,46 +85,6 @@
     </div>
   </section>
 
-  <!-- STATUS UPDATE MODAL -->
-  <div id="statusModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Update Task Status</h3>
-        <button class="modal-close" id="closeModal">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M4 4l10 10M14 4L4 14" stroke="#6b7b99" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-task-title" id="modalTaskTitle"></p>
-        <p class="modal-meta">Assigned to: <strong id="modalRecipient"></strong></p>
-        <p class="modal-meta">Current Status: <span id="modalCurrentStatus" class="status-badge"></span></p>
-
-        <div class="form-group mt-lg">
-          <label for="newStatus">Change Status To</label>
-          <select id="newStatus">
-            <option value="">Select new status</option>
-            <option value="Assigned">Assigned</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
-          </select>
-        </div>
-
-        <div id="modal-alert" class="form-alert hidden"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" id="cancelModal">Cancel</button>
-        <button class="btn btn-primary" id="confirmUpdate">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M2 8l5 5 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Update Status
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- FOOTER -->
   <footer class="site-footer">
     <div class="container footer-inner">

@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var now = new Date();
     var sentDate = now.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
     var sentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    var taskIdValue = String(taskId || '');
+    var siteOrigin = (window.location.protocol ? window.location.protocol : 'http:') + '//' + window.location.host;
+    var statusBaseUrl = siteOrigin + '/notification/start_task.php';
+    var taskTrackingUrl = siteOrigin + '/notification/status.php#task-' + encodeURIComponent(taskIdValue);
 
     // TEMPLATE PARAMETERS
     // Note: EmailJS requires "To Email" field in template to be set to {{to_email}}
@@ -61,10 +65,17 @@ document.addEventListener('DOMContentLoaded', function () {
       to_email: recipientEmail.trim().toLowerCase(),
       receiver_name: recipientName,
       sender_name: senderName,
+      sender_email: senderEmail,
       task_title: taskTitle,
       task_description: taskDesc,
       task_deadline: taskDeadline,
-      task_status: 'Assigned'
+      task_priority: taskPriority,
+      task_id: taskIdValue,
+      date_received: sentDate,
+      start_task_link: statusBaseUrl + '?task_id=' + encodeURIComponent(taskIdValue),
+      complete_task_link: siteOrigin + '/notification/notification/completed_task.php?task_id=' + encodeURIComponent(taskIdValue),
+      completed_task_link: siteOrigin + '/notification/notification/completed_task.php?task_id=' + encodeURIComponent(taskIdValue),
+      tracking_link: taskTrackingUrl
     };
 
     console.log('📝 Sending with params:', templateParams);
