@@ -12,6 +12,9 @@ if (empty($data['id']) || empty($data['status'])) {
 $id = (int)$data['id'];
 $status = trim($data['status']);
 
+$startedAt = isset($data['started_at']) ? normalizeDateTimeInput($data['started_at']) : null;
+$completedAt = isset($data['completed_at']) ? normalizeDateTimeInput($data['completed_at']) : null;
+
 // Normalize status
 $map = [
     'in progress' => 'In Progress',
@@ -32,19 +35,52 @@ try {
     if (!in_array('completed_at', $cols)) $alter[] = "ADD COLUMN completed_at DATETIME NULL";
     if (!empty($alter)) $pdo->exec('ALTER TABLE tasks '.implode(', ', $alter));
 
-    if ($status_norm === 'In Progress') {
-        $stmt = $pdo->prepare('UPDATE tasks SET status = ?, updated_at = NOW(), started_at = COALESCE(started_at, NOW()) WHERE id = ?');
-        $stmt->execute([$status_norm, $id]);
-    } elseif ($status_norm === 'Done') {
-        $stmt = $pdo->prepare('UPDATE tasks SET status = ?, updated_at = NOW(), completed_at = NOW() WHERE id = ?');
-        $stmt->execute([$status_norm, $id]);
-    } else {
-        $stmt = $pdo->prepare('UPDATE tasks SET status = ?, updated_at = NOW() WHERE id = ?');
-        $stmt->execute([$status_norm, $id]);
+    $fields = ['status = ?', 'updated_at = NOW()'];
+    $values = [$status_norm];
+
+    if ($startedAt !== null) {
+        $fields[] = 'started_at = ?';
+        $values[] = $startedAt;
+    } elseif ($status_norm === 'In Progress' || $status_norm === 'Done') {
+        $fields[] = 'started_at = COALESCE(started_at, NOW())';
     }
+
+    if ($completedAt !== null) {
+        $fields[] = 'completed_at = ?';
+        $values[] = $completedAt;
+    } elseif ($status_norm === 'Done') {
+        $fields[] = 'completed_at = NOW()';
+    }
+
+    $values[] = $id;
+    $stmt = $pdo->prepare('UPDATE tasks SET ' . implode(', ', $fields) . ' WHERE id = ?');
+    $stmt->execute($values);
 
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to update status: ' . $e->getMessage()]);
+}
+
+function normalizeDateTimeInput($value)
+{
+    $value = trim((string)$value);
+    if ($value === '') {
+        return null;
+    }
+
+    $formats = ['Y-m-d\TH:i', 'Y-m-d\TH:i:s', 'Y-m-d H:i:s', 'Y-m-d H:i'];
+    foreach ($formats as $format) {
+        $date = DateTime::createFromFormat($format, $value);
+        if ($date instanceof DateTime) {
+            return $date->format('Y-m-d H:i:s');
+        }
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp !== false) {
+        return date('Y-m-d H:i:s', $timestamp);
+    }
+
+    return null;
 }

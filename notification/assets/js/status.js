@@ -53,7 +53,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const left = document.createElement('div');
     const title = document.createElement('div'); title.className = 'task-card-title'; title.textContent = t.title;
     const meta = document.createElement('div'); meta.className = 'task-meta';
-    meta.innerHTML = `<div class="task-meta-item">${t.recipient_name} &lt;${t.recipient_email}&gt;</div><div class="task-meta-item">Deadline: ${t.deadline || '—'}</div><div class="task-meta-item">Priority: <span class="priority-tag ${escapeClass(t.priority)}">${t.priority}</span></div>`;
+    const startedLabel = t.started_at ? formatDateTime(t.started_at) : '';
+    const completedLabel = t.completed_at ? formatDateTime(t.completed_at) : '';
+    const pendingDays = getPendingDays(t);
+    const pendingLabel = t.status === 'Done' ? `Duration: ${pendingDays} day(s)` : `Pending: ${pendingDays} day(s)`;
+    meta.innerHTML = `
+      <div class="task-meta-item">${t.recipient_name} &lt;${t.recipient_email}&gt;</div>
+      <div class="task-meta-item">Deadline: ${t.deadline || '—'}</div>
+      <div class="task-meta-item">Priority: <span class="priority-tag ${escapeClass(t.priority)}">${t.priority}</span></div>
+      <div class="task-meta-item">Started: ${startedLabel}</div>
+      <div class="task-meta-item">Completed: ${completedLabel}</div>
+      <div class="task-meta-item">${pendingLabel}</div>`;
     const desc = document.createElement('div'); desc.className = 'task-desc'; desc.textContent = t.description;
 
     left.appendChild(title);
@@ -74,6 +84,25 @@ document.addEventListener('DOMContentLoaded', function () {
   function escapeClass(s) { return (s||'').replace(/[^a-zA-Z0-9_-]/g,''); }
   function sanitizeStatusClass(s) { return s.replace(/\s+/g, '-'); }
 
+  function formatDateTime(value) {
+    const date = new Date(String(value).replace(' ', 'T'));
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString();
+  }
+
+  function daysBetween(startValue, endValue) {
+    const start = startValue ? new Date(startValue) : null;
+    const end = endValue ? new Date(endValue) : null;
+    if (!start || !end || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
+    return Math.max(0, Math.floor((end - start) / 86400000));
+  }
+
+  function getPendingDays(task) {
+    const baseline = task.started_at || task.created_at;
+    const end = task.status === 'Done' && task.completed_at ? task.completed_at : new Date().toISOString();
+    return daysBetween(baseline, end);
+  }
+
   // FILTER/SEARCH
   filterBtns.forEach(b => b.addEventListener('click', () => {
     filterBtns.forEach(x => x.classList.remove('active'));
@@ -83,29 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }));
 
   searchInput.addEventListener('input', debounce(() => render(), 250));
-
-  // Modal behavior (simple prompt fallback)
-  function openUpdateModal(task) {
-    const newStatus = prompt(`Update status for "${task.title}" (Assigned, In Progress, Done):`, task.status);
-    if (!newStatus) return;
-    if (!['Assigned','In Progress','Done'].includes(newStatus)) { alert('Invalid status'); return; }
-    updateStatus(task.id, newStatus);
-  }
-
-  async function updateStatus(id, status) {
-    try {
-      const fd = new FormData(); fd.append('id', id); fd.append('status', status);
-      const res = await fetch('update_status.php', { method: 'POST', body: fd });
-      const json = await res.json();
-      if (json.success) {
-        await loadTasks();
-      } else {
-        alert(json.error || 'Failed to update');
-      }
-    } catch (err) {
-      alert('Network error: ' + err.message);
-    }
-  }
 
   function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
