@@ -57,17 +57,25 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="recipient_name">Recipient Name <span class="req">*</span></label>
-              <input type="text" id="recipient_name" name="recipient_name" placeholder="Recipient's full name" autocomplete="off"/>
-              <span class="field-error" id="err_recipient_name"></span>
+          <div class="recipients-section">
+            <div class="recipients-header">
+              <h3>Recipients <span class="req">*</span></h3>
+              <button type="button" class="btn btn-outline recipient-add-btn" id="addRecipientBtn">Add Recipient</button>
             </div>
-            <div class="form-group">
-              <label for="recipient_email">Recipient Email <span class="req">*</span></label>
-              <input type="email" id="recipient_email" name="recipient_email" placeholder="recipient@email.com" autocomplete="off"/>
-              <span class="field-error" id="err_recipient_email"></span>
+
+            <div id="recipientsContainer">
+              <div class="form-row recipient-row" data-recipient-row>
+                <div class="form-group">
+                  <label for="recipient_name_0">Recipient Name <span class="req">*</span></label>
+                  <input type="text" id="recipient_name_0" name="recipient_name[]" placeholder="Recipient's full name" autocomplete="off"/>
+                </div>
+                <div class="form-group recipient-email-group">
+                  <label for="recipient_email_0">Recipient Email <span class="req">*</span></label>
+                  <input type="email" id="recipient_email_0" name="recipient_email[]" placeholder="recipient@email.com" autocomplete="off"/>
+                </div>
+              </div>
             </div>
+            <span class="field-error" id="err_recipients"></span>
           </div>
 
           <div class="form-group">

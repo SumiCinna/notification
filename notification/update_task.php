@@ -19,7 +19,7 @@ if (!empty($params['task_id']) && $status === '') {
 }
 
 if (!$id || $status === '') {
-    header('Location: /notification/notification/update_task.php');
+    header('Location: /notification/update_task.php');
     exit;
 }
 
@@ -45,7 +45,7 @@ try {
                     <meta charset="UTF-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                     <title>Starting Task...</title>
-                    <link rel="stylesheet" href="/notification/notification/assets/css/style.css" />
+                    <link rel="stylesheet" href="/notification/assets/css/style.css" />
                 </head>
                     <body class="loader-body">
                     <div class="loader-card">

@@ -82,6 +82,12 @@
         <p>No tasks found matching your criteria.</p>
       </div>
 
+      <div class="pagination-wrap hidden" id="paginationWrap">
+        <button class="pagination-btn" id="prevPageBtn" type="button">Previous</button>
+        <div class="pagination-pages" id="paginationPages"></div>
+        <button class="pagination-btn" id="nextPageBtn" type="button">Next</button>
+      </div>
+
     </div>
   </section>
 
