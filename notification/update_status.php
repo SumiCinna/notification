@@ -28,6 +28,21 @@ $status_norm = isset($map[$key]) ? $map[$key] : $status;
 try {
     $pdo = getPDO();
 
+    // Prevent changes if the task is already completed
+    $check = $pdo->prepare('SELECT status FROM tasks WHERE id = ?');
+    $check->execute([$id]);
+    $currentStatus = $check->fetchColumn();
+    if ($currentStatus === false) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Task not found']);
+        exit;
+    }
+    if (strtolower($currentStatus) === 'done') {
+        http_response_code(403);
+        echo json_encode(['error' => 'Cannot change status: task already completed']);
+        exit;
+    }
+
     // Ensure started_at/completed_at columns exist
     $cols = $pdo->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='tasks'")->fetchAll(PDO::FETCH_COLUMN);
     $alter = [];

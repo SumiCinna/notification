@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let tasks = [];
   let currentFilter = 'all';
   let currentPage = 1;
-  const perPage = 8;
+  const perPage = 5;
 
   async function loadTasks() {
     try {

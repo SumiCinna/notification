@@ -35,6 +35,35 @@ $status_norm = isset($map[$key]) ? $map[$key] : $status;
 try {
     $pdo = getPDO();
 
+    // Check current status and prevent changing a completed task
+    $checkStmt = $pdo->prepare('SELECT status FROM tasks WHERE id = ?');
+    $checkStmt->execute([$id]);
+    $currentStatus = $checkStmt->fetchColumn();
+    if ($currentStatus === false) {
+        if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
+            header('Content-Type: application/json');
+            http_response_code(404);
+            echo json_encode(['error' => 'Task not found']);
+            exit;
+        }
+        echo '<h1>Task not found</h1>';
+        exit;
+    }
+    if (strtolower($currentStatus) === 'done' && strtolower($status_norm) !== 'done') {
+        // If the task is already Done, disallow changing it to any other status
+        if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode(['error' => 'Cannot change status: task already completed']);
+            exit;
+        }
+        // Non-AJAX: show a simple message
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Cannot update</title></head><body>';
+        echo '<h1>Task already completed</h1><p>This task is marked as Done and cannot be changed.</p>';
+        echo '</body></html>';
+        exit;
+    }
+
         if ($status_norm === 'In Progress' && (!isset($_GET['ajax']) || $_GET['ajax'] !== '1')) {
                 $loaderUpdateUrl = '/notification/start_task.php?task_id=' . urlencode((string)$id) . '&status=In%20Progress&ajax=1';
                 $loaderRedirectUrl = '/notification/start_task.php?task_id=' . $id;
