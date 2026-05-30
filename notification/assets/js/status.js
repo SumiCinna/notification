@@ -7,7 +7,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const prevPageBtn = document.getElementById('prevPageBtn');
   const nextPageBtn = document.getElementById('nextPageBtn');
   const paginationPages = document.getElementById('paginationPages');
-  const stats = { all: document.getElementById('stat-all'), assigned: document.getElementById('stat-assigned'), inprogress: document.getElementById('stat-inprogress'), done: document.getElementById('stat-done') };
+  const stats = {
+    all: document.getElementById('stat-all'),
+    assigned: document.getElementById('stat-assigned'),
+    inprogress: document.getElementById('stat-inprogress'),
+    done: document.getElementById('stat-done'),
+    missing: document.getElementById('stat-missing')
+  };
 
   let tasks = [];
   let currentFilter = 'all';
@@ -32,7 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function render() {
     const q = searchInput.value.trim().toLowerCase();
     const filtered = tasks.filter(t => {
-      if (currentFilter !== 'all' && t.status !== currentFilter) return false;
+      const displayStatus = getDisplayStatus(t);
+      if (currentFilter !== 'all' && displayStatus !== currentFilter) return false;
       if (!q) return true;
       return (t.title && t.title.toLowerCase().includes(q)) || (t.recipient_name && t.recipient_name.toLowerCase().includes(q)) || (t.recipient_email && t.recipient_email.toLowerCase().includes(q));
     });
@@ -56,9 +63,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // update stats
     stats.all.textContent = tasks.length;
-    stats.assigned.textContent = tasks.filter(t => t.status === 'Assigned').length;
-    stats.inprogress.textContent = tasks.filter(t => t.status === 'In Progress').length;
-    stats.done.textContent = tasks.filter(t => t.status === 'Done').length;
+    stats.assigned.textContent = tasks.filter(t => getDisplayStatus(t) === 'Assigned').length;
+    stats.inprogress.textContent = tasks.filter(t => getDisplayStatus(t) === 'In Progress').length;
+    stats.done.textContent = tasks.filter(t => getDisplayStatus(t) === 'Done').length;
+    stats.missing.textContent = tasks.filter(t => getDisplayStatus(t) === 'Missing').length;
   }
 
   function renderPagination(totalPages) {
@@ -93,7 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const startedLabel = t.started_at ? formatDateTime(t.started_at) : '';
     const completedLabel = t.completed_at ? formatDateTime(t.completed_at) : '';
     const pendingDays = getPendingDays(t);
-    const pendingLabel = t.status === 'Done' ? `Duration: ${pendingDays} day(s)` : `Pending: ${pendingDays} day(s)`;
+    const displayStatus = getDisplayStatus(t);
+    const pendingLabel = displayStatus === 'Done'
+      ? `Duration: ${pendingDays} day(s)`
+      : (displayStatus === 'Missing' ? `Overdue: ${pendingDays} day(s)` : `Pending: ${pendingDays} day(s)`);
     meta.innerHTML = `
       <div class="task-meta-item">${t.recipient_name} &lt;${t.recipient_email}&gt;</div>
       <div class="task-meta-item">Deadline: ${t.deadline || '—'}</div>
@@ -108,7 +119,9 @@ document.addEventListener('DOMContentLoaded', function () {
     left.appendChild(desc);
 
     const right = document.createElement('div'); right.className = 'task-card-right';
-    const statusBadge = document.createElement('div'); statusBadge.className = 'status-badge ' + sanitizeStatusClass(t.status); statusBadge.textContent = t.status;
+    const statusBadge = document.createElement('div');
+    statusBadge.className = 'status-badge ' + sanitizeStatusClass(displayStatus);
+    statusBadge.textContent = displayStatus;
 
     right.appendChild(statusBadge);
 
@@ -136,8 +149,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function getPendingDays(task) {
     const baseline = task.started_at || task.created_at;
-    const end = task.status === 'Done' && task.completed_at ? task.completed_at : new Date().toISOString();
+    const displayStatus = getDisplayStatus(task);
+    const end = displayStatus === 'Done' && task.completed_at ? task.completed_at : new Date().toISOString();
     return daysBetween(baseline, end);
+  }
+
+  function isPastDeadline(task) {
+    if (!task.deadline || task.status === 'Done') return false;
+    const deadline = new Date(task.deadline + 'T23:59:59');
+    if (Number.isNaN(deadline.getTime())) return false;
+    return new Date() > deadline;
+  }
+
+  function getDisplayStatus(task) {
+    if (isPastDeadline(task)) return 'Missing';
+    return task.status;
   }
 
   // FILTER/SEARCH

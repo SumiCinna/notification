@@ -50,6 +50,10 @@
           <span class="stat-num accent-done" id="stat-done">0</span>
           <span class="stat-label">Done</span>
         </div>
+        <div class="stat-box">
+          <span class="stat-num accent-missing" id="stat-missing">0</span>
+          <span class="stat-label">Missing</span>
+        </div>
       </div>
 
       <!-- FILTERS -->
@@ -66,6 +70,7 @@
           <button class="filter-btn" data-filter="Assigned">Assigned</button>
           <button class="filter-btn" data-filter="In Progress">In Progress</button>
           <button class="filter-btn" data-filter="Done">Done</button>
+          <button class="filter-btn" data-filter="Missing">Missing</button>
         </div>
       </div>
 
